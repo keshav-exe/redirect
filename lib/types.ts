@@ -15,4 +15,7 @@ export interface ProfileLink {
 export interface Profile {
   username: string;
   links: ProfileLink[];
+  userId: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
