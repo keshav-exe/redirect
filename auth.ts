@@ -16,9 +16,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: "/auth/signin",
   },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   callbacks: {
+    async jwt({ token, account, user }) {
+      if (account && user) {
+        token.sub = user.id;
+      }
+      return token;
+    },
     async session({ session, token }) {
-      // token.sub is the user ID from OAuth provider
       if (session.user && token.sub) {
         session.user.id = token.sub;
       }

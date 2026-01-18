@@ -73,10 +73,15 @@
   }
 }
 
-/* Smooth hover transitions */
+/* Smooth hover transitions - following animation guidelines */
 @media (hover: hover) and (pointer: fine) {
   a, button {
-    transition: opacity 200ms ease, transform 200ms ease, background-color 200ms ease;
+    transition: opacity 200ms ease, color 200ms ease, background-color 200ms ease;
+  }
+  
+  /* Transform transitions use ease-out for better feel */
+  [style*="will-change: transform"] {
+    transition: transform 200ms cubic-bezier(.25, .46, .45, .94);
   }
 }
 

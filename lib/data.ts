@@ -43,24 +43,62 @@ export async function usernameExists(username: string): Promise<boolean> {
 }
 
 export async function saveProfile(profile: Profile): Promise<void> {
-  const { error } = await supabase
-    .from("profiles")
-    .upsert(
-      {
-        username: profile.username.toLowerCase(),
-        user_id: profile.userId,
-        links: profile.links,
-        updated_at: new Date().toISOString(),
-        ...(profile.createdAt && { created_at: profile.createdAt }),
-      },
-      {
-        onConflict: "username",
-      }
-    );
+  const payload: any = {
+    username: profile.username.toLowerCase(),
+    user_id: profile.userId,
+    links: profile.links,
+  };
 
-  if (error) {
-    throw new Error(`Failed to save profile: ${error.message}`);
+  // Only set created_at if it's a new profile (createdAt is provided)
+  // For updates, let the database preserve the existing created_at
+  // Don't set updated_at - the database trigger handles it
+  if (profile.createdAt) {
+    payload.created_at = profile.createdAt;
   }
+
+  // Retry logic for transient database errors
+  let lastError: any = null;
+  const maxRetries = 3;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const { error, data } = await supabase
+      .from("profiles")
+      .upsert(payload, {
+        onConflict: "username",
+      });
+
+    if (!error) {
+      return; // Success
+    }
+
+    lastError = error;
+    
+    // If it's a schema cache error, wait and retry
+    if (error.message?.includes("schema cache") || error.message?.includes("Retrying")) {
+      if (attempt < maxRetries) {
+        // Exponential backoff: 500ms, 1s, 2s
+        await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+        continue;
+      }
+    }
+    
+    // For other errors or final retry, break and throw
+    break;
+  }
+
+  console.error("Supabase error:", lastError);
+  
+  // Check if error message is HTML (database down)
+  if (lastError?.message?.includes("<!DOCTYPE html>")) {
+    throw new Error("Database server is temporarily unavailable. Please try again in a few minutes.");
+  }
+  
+  // Check for schema cache errors
+  if (lastError?.message?.includes("schema cache")) {
+    throw new Error("Database connection issue. Please try again in a moment.");
+  }
+  
+  throw new Error(`Failed to save profile: ${lastError?.message || "Unknown error"}`);
 }
 
 export async function getProfileByUserId(

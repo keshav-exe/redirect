@@ -27,12 +27,15 @@ export async function POST(request: Request) {
     const { username, links, isEdit } = body;
 
     // Basic validation
-    if (!username || !links || links.length === 0) {
+    if (!username) {
       return NextResponse.json(
-        { error: "Username and at least one link required" },
+        { error: "Username is required" },
         { status: 400 }
       );
     }
+
+    // Links are optional
+    const validLinks = links || [];
 
     const normalizedUsername = username.trim().toLowerCase();
 
@@ -67,36 +70,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    // Validate URLs
-    for (const link of links) {
-      if (!link.url || !link.platform) {
-        return NextResponse.json(
-          { error: "All links must have platform and URL" },
-          { status: 400 }
-        );
+    // Validate URLs if links exist
+    if (validLinks.length > 0) {
+      for (const link of validLinks) {
+        if (!link.url || !link.platform) {
+          return NextResponse.json(
+            { error: "All links must have platform and URL" },
+            { status: 400 }
+          );
+        }
+        try {
+          new URL(link.url);
+        } catch {
+          return NextResponse.json(
+            { error: `Invalid URL: ${link.url}` },
+            { status: 400 }
+          );
+        }
       }
-      try {
-        new URL(link.url);
-      } catch {
-        return NextResponse.json(
-          { error: `Invalid URL: ${link.url}` },
-          { status: 400 }
-        );
-      }
-    }
 
-    // Check for duplicate platforms
-    const platforms = links.map((l: { platform: string }) => l.platform);
-    if (new Set(platforms).size !== platforms.length) {
-      return NextResponse.json(
-        { error: "Duplicate platforms not allowed" },
-        { status: 400 }
-      );
+      // Check for duplicate platforms
+      const platforms = validLinks.map((l: { platform: string }) => l.platform);
+      if (new Set(platforms).size !== platforms.length) {
+        return NextResponse.json(
+          { error: "Duplicate platforms not allowed" },
+          { status: 400 }
+        );
+      }
     }
 
     const profile: Profile = {
       username: normalizedUsername,
-      links,
+      links: validLinks,
       userId: session.user.id,
       createdAt: existingProfile?.createdAt,
     };
@@ -105,10 +110,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Profile save error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    // Check if it's an HTML response (database down)
+    if (errorMessage.includes("<!DOCTYPE html>") || errorMessage.includes("Web server is down")) {
+      return NextResponse.json(
+        {
+          error: "Database server is temporarily unavailable. Please try again in a few minutes.",
+        },
+        { status: 503 }
+      );
+    }
+    
+    // Check for schema cache or connection issues
+    if (errorMessage.includes("schema cache") || errorMessage.includes("connection issue")) {
+      return NextResponse.json(
+        {
+          error: errorMessage,
+        },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
       {
-        error: "Failed to save profile",
-        details: error instanceof Error ? error.message : String(error),
+        error: errorMessage.includes("Failed to save profile") 
+          ? errorMessage 
+          : `Failed to save profile: ${errorMessage}`,
+        details: errorMessage,
       },
       { status: 500 }
     );

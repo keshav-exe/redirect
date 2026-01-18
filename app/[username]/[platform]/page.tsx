@@ -21,33 +21,31 @@ export default async function PlatformPage({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="w-full px-6 py-5">
-        <nav className="max-w-5xl mx-auto">
-          <Link
-            href="/"
-            className="text-sm font-medium tracking-tight hover:opacity-60"
-          >
-            redirect
-          </Link>
-        </nav>
-      </header>
-      <main className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="max-w-sm w-full space-y-6 text-center">
-          <h1 className="text-2xl font-medium tracking-tight">
-            Link not found
-          </h1>
-          <p className="text-muted-foreground">
-            @{username} doesn&apos;t have a {platform} link.
-          </p>
+    <main className="grid h-full min-h-screen p-4 gap-4">
+      <div className="flex flex-col gap-6 ring-2 ring-offset-8 ring-border rounded-2xl bg-accent p-6">
+        <Link
+          href={`/${username}`}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+        >
+          ← Back
+        </Link>
+        <div className="space-y-6 max-w-xl">
+          <div className="space-y-2">
+            <h1 className="text-5xl lg:text-6xl font-bold tracking-tighter leading-[110%] text-muted-foreground">
+              Link <span className="text-primary">not found</span>
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              @{username} doesn&apos;t have a {platform} link.
+            </p>
+          </div>
           <Link
             href={`/${username}`}
-            className="inline-flex px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:opacity-90 transition-opacity"
+            className="inline-flex px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity duration-200"
           >
             View all links
           </Link>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

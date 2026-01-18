@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,6 +26,7 @@ const PLATFORMS: { value: Platform; label: string }[] = [
 
 export default function EditPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [username, setUsername] = useState("");
   const [links, setLinks] = useState<ProfileLink[]>([
@@ -49,50 +50,34 @@ export default function EditPage() {
                 : [{ platform: "twitter", url: "" }]
             );
             setIsEdit(true);
+          } else {
+            // If no profile exists, check for username param from home page
+            const urlUsername = searchParams.get("username");
+            if (urlUsername) {
+              setUsername(urlUsername);
+            }
           }
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setProfileLoading(false));
     } else if (status !== "loading") {
-      setProfileLoading(false);
+      setTimeout(() => setProfileLoading(false), 1000);
     }
-  }, [status, session]);
+  }, [status, session, searchParams]);
 
   if (status === "loading" || profileLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="w-5 h-5 border-2 border-muted-foreground/20 border-t-muted-foreground rounded-full animate-spin" />
-        </main>
-      </div>
+      <main className="grid h-full min-h-screen p-4">
+        <div className="flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-muted-foreground/20 border-t-muted-foreground rounded-full animate-spin" />
+        </div>
+      </main>
     );
   }
 
   if (status === "unauthenticated") {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex flex-col items-center justify-center px-6">
-          <div className="max-w-sm w-full space-y-8 text-center">
-            <div className="space-y-3">
-              <h1 className="text-2xl font-medium tracking-tight">
-                Create your redirect
-              </h1>
-              <p className="text-muted-foreground">
-                Sign in to claim your username
-              </p>
-            </div>
-            <Link
-              href="/auth/signin"
-              className="inline-flex w-full justify-center px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:opacity-90 transition-opacity"
-            >
-              Sign in to continue
-            </Link>
-          </div>
-        </main>
-      </div>
-    );
+    router.push("/auth/signin");
+    return null;
   }
 
   const addLink = () => {
@@ -115,14 +100,45 @@ export default function EditPage() {
     }
   };
 
+  const normalizeUrl = (platform: Platform, input: string): string => {
+    const trimmed = input.trim();
+
+    // If it's already a full URL, return it
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+
+    // Remove @ if present
+    const handle = trimmed.replace(/^@/, "");
+
+    // Convert handle to full URL based on platform
+    const platformUrls: Record<Platform, string> = {
+      twitter: `https://twitter.com/${handle}`,
+      instagram: `https://instagram.com/${handle}`,
+      linkedin: `https://linkedin.com/in/${handle}`,
+      github: `https://github.com/${handle}`,
+      youtube: `https://youtube.com/@${handle}`,
+      tiktok: `https://tiktok.com/@${handle}`,
+      website: trimmed.startsWith("www.") ? `https://${trimmed}` : trimmed,
+    };
+
+    return platformUrls[platform] || trimmed;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    const validLinks = links.filter((link) => link.url.trim() !== "");
-    if (!username.trim() || validLinks.length === 0) {
-      setError("Username and at least one link required");
+    const validLinks = links
+      .filter((link) => link.url.trim() !== "")
+      .map((link) => ({
+        platform: link.platform,
+        url: normalizeUrl(link.platform, link.url),
+      }));
+
+    if (!username.trim()) {
+      setError("Username is required");
       setLoading(false);
       return;
     }
@@ -144,7 +160,7 @@ export default function EditPage() {
     if (res.ok) {
       router.push(`/${profile.username}`);
     } else {
-      setError(data.error || "Failed to save profile");
+      setError(data.error || data.details || "Failed to save profile");
       setLoading(false);
     }
   };
@@ -154,16 +170,35 @@ export default function EditPage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header session={session} />
-      
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="max-w-md w-full space-y-8">
+    <main className="grid h-full min-h-screen p-4 gap-4">
+      <div className="flex flex-col gap-6 ring-2 ring-offset-8 ring-border rounded-2xl bg-accent p-6">
+        <div className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+          >
+            ← Back
+          </Link>
+          {session?.user && (
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+            >
+              Sign out
+            </button>
+          )}
+        </div>
+
+        <div className="space-y-6">
           <div className="space-y-2">
-            <h1 className="text-2xl font-medium tracking-tight">
-              {isEdit ? "Edit your profile" : "Create your redirect"}
+            <h1 className="text-5xl lg:text-6xl font-bold tracking-tighter leading-[110%] text-muted-foreground">
+              {isEdit ? (
+                <>Edit your <span className="text-primary">dwaar</span></>
+              ) : (
+                <>Create your <span className="text-primary">dwaar</span></>
+              )}
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-lg text-muted-foreground">
               {isEdit
                 ? "Update your social links"
                 : "Claim your username and add your social links"}
@@ -172,21 +207,21 @@ export default function EditPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-xl">
+              <div className="px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
             {/* Username */}
-            <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium">
-                Username
+            <div className="space-y-3">
+              <label htmlFor="username" className="text-sm font-medium text-muted-foreground">
+                Your username
               </label>
-              <div className="flex items-center">
-                <span className="px-4 py-2.5 bg-muted text-muted-foreground text-sm rounded-l-xl border border-r-0 border-border">
-                  redirect.to/
+              <div className="flex items-stretch overflow-hidden rounded-lg border border-border bg-card">
+                <span className="flex items-center px-4 text-muted-foreground text-sm">
+                  dwaar.to/
                 </span>
-                <Input
+                <input
                   id="username"
                   type="text"
                   value={username}
@@ -194,7 +229,7 @@ export default function EditPage() {
                   placeholder="yourname"
                   required
                   disabled={isEdit}
-                  className={`rounded-l-none ${isEdit ? "bg-muted text-muted-foreground" : ""}`}
+                  className={`flex-1 px-2 py-3 text-sm bg-transparent outline-none ${isEdit ? "cursor-not-allowed opacity-60" : ""}`}
                 />
               </div>
               {isEdit && (
@@ -207,12 +242,14 @@ export default function EditPage() {
             {/* Links */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Social links</label>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Social links (optional)
+                </label>
                 {availablePlatforms.length > 0 && (
                   <button
                     type="button"
                     onClick={addLink}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm text-primary hover:opacity-80 transition-opacity duration-200 font-medium"
                   >
                     + Add link
                   </button>
@@ -223,16 +260,16 @@ export default function EditPage() {
                 {links.map((link, index) => (
                   <div
                     key={index}
-                    className="flex gap-2 items-start p-4 bg-card border border-border rounded-xl"
+                    className="flex gap-3 items-start p-4 bg-card border border-border rounded-lg"
                   >
                     <div className="flex-1 space-y-3">
                       <Select
                         value={link.platform}
                         onValueChange={(value) =>
-                          updateLink(index, "platform", value)
+                          updateLink(index, "platform", value || link.platform)
                         }
                       >
-                        <SelectTrigger className="w-full bg-muted/50 border-0">
+                        <SelectTrigger className="w-full bg-transparent border border-border">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -247,19 +284,22 @@ export default function EditPage() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Input
-                        type="url"
+                      <input
+                        type="text"
                         value={link.url}
                         onChange={(e) => updateLink(index, "url", e.target.value)}
-                        placeholder="https://twitter.com/yourname"
-                        className="bg-transparent border-0 border-b border-border rounded-none px-0 focus-visible:ring-0 focus-visible:border-foreground"
+                        placeholder="@yourhandle or full URL"
+                        className="w-full px-3 py-2 text-sm bg-transparent border border-border rounded-lg outline-none focus:border-foreground transition-colors duration-200"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Enter @yourhandle or full URL (e.g., https://twitter.com/yourname)
+                      </p>
                     </div>
                     {links.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeLink(index)}
-                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                        className="p-2 text-muted-foreground hover:text-destructive transition-colors duration-200"
                         aria-label="Remove link"
                       >
                         <svg
@@ -280,67 +320,46 @@ export default function EditPage() {
             </div>
 
             {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-primary-foreground/20 border-t-primary-foreground rounded-full animate-spin" />
-                  Saving...
-                </span>
-              ) : isEdit ? (
-                "Save changes"
-              ) : (
-                "Create redirect"
+            <div className="flex gap-3 pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex-1 px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-primary-foreground/20 border-t-primary-foreground rounded-full animate-spin" />
+                    Saving...
+                  </span>
+                ) : isEdit ? (
+                  "Save changes"
+                ) : (
+                  "Create dwaar"
+                )}
+              </button>
+              {isEdit && (
+                <Link
+                  href={`/${username}`}
+                  className="px-6 py-3 bg-card border border-border text-sm font-medium rounded-lg hover:bg-muted transition-colors duration-200 whitespace-nowrap"
+                >
+                  View profile
+                </Link>
               )}
-            </button>
+            </div>
           </form>
 
           {isEdit && (
-            <div className="pt-4 border-t border-border">
+            <div className="pt-4 text-center">
               <p className="text-sm text-muted-foreground">
-                Your redirect:{" "}
-                <Link
-                  href={`/${username}`}
-                  className="text-foreground hover:underline"
-                >
-                  redirect.to/{username}
-                </Link>
+                Your dwaar:{" "}
+                <span className="text-foreground font-medium">
+                  dwaar.to/{username}
+                </span>
               </p>
             </div>
           )}
         </div>
-      </main>
-    </div>
-  );
-}
-
-function Header({ session }: { session?: { user?: { name?: string | null } } | null }) {
-  return (
-    <header className="w-full px-6 py-5 border-b border-border">
-      <nav className="max-w-5xl mx-auto flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-sm font-medium tracking-tight hover:opacity-60"
-        >
-          redirect
-        </Link>
-        {session?.user && (
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {session.user.name}
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign out
-            </button>
-          </div>
-        )}
-      </nav>
-    </header>
+      </div>
+    </main>
   );
 }

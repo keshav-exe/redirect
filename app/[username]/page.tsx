@@ -13,7 +13,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   website: "Website",
 };
 
-const PLATFORM_ICONS: Record<string, JSX.Element> = {
+const PLATFORM_ICONS: Record<string, React.ReactNode> = {
   twitter: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -62,101 +62,95 @@ export default async function UsernamePage({
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <header className="w-full px-6 py-5">
-          <nav className="max-w-5xl mx-auto">
-            <Link
-              href="/"
-              className="text-sm font-medium tracking-tight hover:opacity-60"
-            >
-              redirect
-            </Link>
-          </nav>
-        </header>
-        <main className="flex-1 flex flex-col items-center justify-center px-6">
-          <div className="max-w-sm w-full space-y-6 text-center">
-            <h1 className="text-2xl font-medium tracking-tight">
-              Profile not found
-            </h1>
-            <p className="text-muted-foreground">
-              This username hasn&apos;t been claimed yet.
-            </p>
+      <main className="grid h-full min-h-screen p-4 gap-4">
+        <div className="flex flex-col gap-6 ring-2 ring-offset-8 ring-border rounded-2xl bg-accent p-6">
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+          >
+            ← Back
+          </Link>
+          <div className="space-y-6 max-w-xl">
+            <div className="space-y-2">
+              <h1 className="text-5xl lg:text-6xl font-bold tracking-tighter leading-[110%] text-muted-foreground">
+                Profile <span className="text-primary">not found</span>
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                This username hasn&apos;t been claimed yet.
+              </p>
+            </div>
             <Link
               href="/edit"
-              className="inline-flex px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:opacity-90 transition-opacity"
+              className="inline-flex px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity duration-200"
             >
               Claim this username
             </Link>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="w-full px-6 py-5">
-        <nav className="max-w-5xl mx-auto">
-          <Link
-            href="/"
-            className="text-sm font-medium tracking-tight hover:opacity-60"
-          >
-            redirect
-          </Link>
-        </nav>
-      </header>
+    <main className="grid h-full min-h-screen p-4 gap-4">
+      <div className="flex flex-col gap-6 ring-2 ring-offset-8 ring-border rounded-2xl bg-accent p-6">
+        <Link
+          href="/"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+        >
+          ← Back
+        </Link>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="max-w-sm w-full space-y-8">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-medium tracking-tight">
-              @{username}
+        <div className="space-y-6 max-w-xl">
+          <div className="space-y-2">
+            <h1 className="text-5xl lg:text-6xl font-bold tracking-tighter leading-[110%] text-muted-foreground">
+              @<span className="text-primary">{username}</span>
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-lg text-muted-foreground">
               Choose a platform
             </p>
           </div>
 
-          <div className="space-y-3">
-            {profile.links.map((link) => (
-              <Link
-                key={link.platform}
-                href={`/${username}/${link.platform}`}
-                className="flex items-center gap-4 w-full px-5 py-4 bg-card border border-border rounded-xl hover:bg-muted transition-colors group"
-              >
-                <span className="text-muted-foreground group-hover:text-foreground transition-colors">
-                  {PLATFORM_ICONS[link.platform]}
-                </span>
-                <span className="text-sm font-medium">
-                  {PLATFORM_LABELS[link.platform] || link.platform}
-                </span>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="ml-auto text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all"
+          {profile.links.length > 0 ? (
+            <div className="space-y-3">
+              {profile.links.map((link) => (
+                <Link
+                  key={link.platform}
+                  href={`/${username}/${link.platform}`}
+                  className="flex items-center gap-4 w-full px-5 py-4 bg-card border border-border rounded-lg hover:bg-muted transition-colors duration-200 group"
                 >
-                  <path d="M6 4l4 4-4 4" />
-                </svg>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </main>
+                  <span className="text-muted-foreground group-hover:text-foreground transition-colors duration-200">
+                    {PLATFORM_ICONS[link.platform]}
+                  </span>
+                  <span className="text-sm font-medium">
+                    {PLATFORM_LABELS[link.platform] || link.platform}
+                  </span>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    className="ml-auto text-muted-foreground group-hover:text-foreground transition-all duration-200"
+                  >
+                    <path d="M6 4l4 4-4 4" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No links added yet.</p>
+          )}
 
-      <footer className="px-6 py-8">
-        <div className="max-w-5xl mx-auto text-center">
           <Link
-            href="/edit"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            href="/"
+            className="inline-block text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
-            Create your own redirect
+            Create your own dwaar
           </Link>
         </div>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }
