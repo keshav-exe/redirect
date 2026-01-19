@@ -43,6 +43,7 @@ export async function usernameExists(username: string): Promise<boolean> {
 }
 
 export async function saveProfile(profile: Profile): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload: any = {
     username: profile.username.toLowerCase(),
     user_id: profile.userId,
@@ -57,6 +58,7 @@ export async function saveProfile(profile: Profile): Promise<void> {
   }
 
   // Retry logic for transient database errors
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let lastError: any = null;
   const maxRetries = 3;
   

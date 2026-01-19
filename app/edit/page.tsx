@@ -189,7 +189,7 @@ export default function EditPage() {
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-xl">
           <div className="space-y-2">
             <h1 className="text-5xl lg:text-6xl font-bold tracking-tighter leading-[110%] text-muted-foreground">
               {isEdit ? (
