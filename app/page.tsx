@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { Button } from "@/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/components/ui/input-group";
 
 export default function HomePage() {
   const router = useRouter();
@@ -30,29 +36,36 @@ export default function HomePage() {
           className="max-w-[65ch] text-[2.75rem] leading-[1.08] text-muted-foreground lg:text-[3.95rem]"
           style={{ textWrap: "balance" }}
         >
-          A simple tool that makes it{" "}
+          A free tool that makes it{" "}
           <span className="text-foreground">easier to keep track</span> of your
           social profiles, with just one{" "}
           <span className="text-foreground">redirect.</span>
         </h1>
 
-        <div className="flex max-w-xl flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-          <div className="flex flex-1 items-center overflow-hidden rounded-sm border border-border bg-card focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
-            <span className="whitespace-nowrap pl-4 text-sm tabular-nums text-muted-foreground">
-              /
-            </span>
-            <input
+        <div className="flex max-w-xl flex-col gap-3 sm:flex-row">
+          <InputGroup size="lg" className="min-w-0 flex-1 bg-card">
+            <InputGroupAddon align="inline-start">
+              <InputGroupText className="pl-1 tabular-nums">/</InputGroupText>
+            </InputGroupAddon>
+            <InputGroupInput
               type="text"
               value={username}
               onChange={handleUsernameChange}
               placeholder="yourname"
-              className="flex-1 bg-transparent px-1 py-3 text-base outline-none placeholder:text-muted-foreground/50 md:text-sm"
+              spellCheck={false}
+              autoComplete="off"
             />
-            <span className="whitespace-nowrap pr-4 text-sm tabular-nums text-muted-foreground">
-              /instagram
-            </span>
-          </div>
-          <Button onClick={handleClaim} size="lg" className="px-5">
+            <InputGroupAddon align="inline-end">
+              <InputGroupText className="pr-1 tabular-nums">
+                /instagram
+              </InputGroupText>
+            </InputGroupAddon>
+          </InputGroup>
+          <Button
+            onClick={handleClaim}
+            size="lg"
+            className="w-full shrink-0 px-5 sm:w-auto"
+          >
             Claim yours
           </Button>
         </div>

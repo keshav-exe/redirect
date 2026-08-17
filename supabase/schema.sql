@@ -29,3 +29,7 @@ CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON profiles
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- Deny direct table access for anon/authenticated clients.
+-- The app uses the service role server-side, which bypasses RLS.
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;

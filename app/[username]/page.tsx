@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getProfile } from "@/lib/data";
 import { PLATFORM_LABELS, getFaviconUrl } from "@/lib/platforms";
 import { AdSlot } from "@/components/ui/ad-slot";
@@ -50,29 +51,7 @@ export default async function UsernamePage({
   const profile = await getProfile(username);
 
   if (!profile) {
-    return (
-      <main className="min-h-screen px-6 py-5 lg:px-10">
-        <div className="mx-auto flex max-w-xl flex-col gap-8">
-          <BackLink />
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-[2.5rem] leading-[1.08] text-muted-foreground lg:text-[3rem]">
-                Profile <span className="text-foreground">not found</span>
-              </h1>
-              <p className="text-base text-muted-foreground">
-                This username hasn&apos;t been claimed yet.
-              </p>
-            </div>
-            <Link
-              href="/edit"
-              className="inline-flex rounded-sm bg-primary px-5 py-3 text-[15px] font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/90"
-            >
-              Claim this username
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
+    notFound();
   }
 
   return (

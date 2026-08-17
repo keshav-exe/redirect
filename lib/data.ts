@@ -124,21 +124,6 @@ export async function getProfileByUserId(
   };
 }
 
-export async function getProfilesForSitemap(): Promise<
-  Array<{ username: string; updatedAt: string | null }>
-> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("username, updated_at")
-    .order("updated_at", { ascending: false });
-
-  if (error || !data) return [];
-
-  return data.map((profile) => ({
-    username: profile.username,
-    updatedAt: profile.updated_at,
-  }));
-}
 
 export async function canEditProfile(
   username: string,
@@ -151,10 +136,14 @@ export async function canEditProfile(
 // Platform URL builders for universal/app links
 export function buildPlatformUrl(platform: Platform, url: string): string {
   const domain = PLATFORM_DOMAINS[platform];
-  if (!domain) return url; // youtube / website URLs are already correct
+  if (!domain) return url;
 
   try {
-    const { pathname, search } = new URL(url);
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return url;
+    }
+    const { pathname, search } = parsed;
     return `https://${domain}${pathname}${search}`;
   } catch {
     return url;

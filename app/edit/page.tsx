@@ -1,9 +1,8 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -18,6 +17,10 @@ import { PlusSignIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { BackLink } from "@/components/ui/back-link";
 import { Icon } from "@/components/ui/icon";
 import Link from "next/link";
+import {
+  AUTH_ERROR_CODES,
+  getSignInUrl,
+} from "@/lib/errors";
 
 const PLATFORMS: { value: Platform; label: string }[] = PLATFORM_ORDER.map(
   (value) => ({ value, label: PLATFORM_LABELS[value] })
@@ -37,11 +40,52 @@ function EditPageContent() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [adFree, setAdFree] = useState(false);
 
+  const handleAuthFailure = useCallback(
+    async (status: number, code?: string) => {
+      if (status === 401) {
+        await signOut({
+          callbackUrl: getSignInUrl(AUTH_ERROR_CODES.SESSION_EXPIRED),
+        });
+        return true;
+      }
+
+      if (status === 404 && code === AUTH_ERROR_CODES.ACCOUNT_NOT_FOUND) {
+        await signOut({
+          callbackUrl: getSignInUrl(
+            AUTH_ERROR_CODES.ACCOUNT_NOT_FOUND,
+            searchParams.get("username")
+          ),
+        });
+        return true;
+      }
+
+      return false;
+    },
+    [searchParams]
+  );
+
   useEffect(() => {
+    if (status === "authenticated" && !session?.user?.id) {
+      void signOut({
+        callbackUrl: getSignInUrl(AUTH_ERROR_CODES.SESSION_EXPIRED),
+      });
+      return;
+    }
+
     if (status === "authenticated" && session?.user?.id) {
       fetch("/api/profile")
-        .then((res) => res.json())
-        .then((data) => {
+        .then(async (res) => {
+          const data = await res.json();
+
+          if (await handleAuthFailure(res.status, data.code)) {
+            return;
+          }
+
+          if (!res.ok) {
+            setError(data.error || "Failed to load your profile.");
+            return;
+          }
+
           if (data.profile) {
             setUsername(data.profile.username);
             setLinks(
@@ -52,19 +96,20 @@ function EditPageContent() {
             setAdFree(data.profile.adFree ?? false);
             setIsEdit(true);
           } else {
-            // If no profile exists, check for username param from home page
             const urlUsername = searchParams.get("username");
             if (urlUsername) {
               setUsername(urlUsername);
             }
           }
         })
-        .catch(() => { })
+        .catch(() => {
+          setError("Couldn't reach the server. Check your connection and try again.");
+        })
         .finally(() => setProfileLoading(false));
     } else if (status !== "loading") {
-      setTimeout(() => setProfileLoading(false), 1000);
+      setProfileLoading(false);
     }
-  }, [status, session, searchParams]);
+  }, [status, session, searchParams, handleAuthFailure]);
 
   if (status === "loading" || profileLoading) {
     return (
@@ -157,6 +202,10 @@ function EditPageContent() {
     });
 
     const data = await res.json();
+
+    if (await handleAuthFailure(res.status, data.code)) {
+      return;
+    }
 
     if (res.ok) {
       router.push(`/${profile.username}`);

@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail01Icon } from "@hugeicons/core-free-icons";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { Icon } from "@/components/ui/icon";
-import { buttonVariants } from "@/components/ui/button";
-import { ADVERTISE_CONTACT_URL } from "@/lib/ads";
+import { AdvertiseContactButton } from "@/components/marketing/advertise-contact-button";
 import { createPageMetadata } from "@/lib/seo";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Advertise",
@@ -78,16 +74,7 @@ export default function AdvertisePage() {
         </aside>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <a
-            href={ADVERTISE_CONTACT_URL}
-            className={cn(
-              buttonVariants({ variant: "default", size: "lg" }),
-              "inline-flex items-center gap-2 pl-4 pr-3.5"
-            )}
-          >
-            <Icon icon={Mail01Icon} className="size-4" />
-            Get in touch
-          </a>
+          <AdvertiseContactButton />
           <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
             Tell us who you are and what you are promoting. We will reply with
             availability and pricing.

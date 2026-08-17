@@ -81,6 +81,14 @@
     text-wrap: balance;
   }
 
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
   ::selection {
     background: rgba(2, 132, 199, 0.3);
   }

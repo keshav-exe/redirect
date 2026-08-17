@@ -6,10 +6,12 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BackLink } from "@/components/ui/back-link";
 import { Button } from "@/components/ui/button";
+import { AuthNotice } from "@/components/ui/auth-notice";
 
 function SignInContent() {
   const searchParams = useSearchParams();
   const username = searchParams.get("username");
+  const error = searchParams.get("error");
   const handleSignIn = () => {
     const callbackUrl = username ? `/edit?username=${username}` : "/edit";
     signIn("google", { callbackUrl });
@@ -30,6 +32,8 @@ function SignInContent() {
                 Sign in to manage your redirects
               </p>
             </div>
+
+            <AuthNotice error={error} />
 
             <Button
               onClick={handleSignIn}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { getProfileLink, buildPlatformUrl } from "@/lib/data";
+import { notFound, redirect } from "next/navigation";
+import { getProfile, getProfileLink, buildPlatformUrl } from "@/lib/data";
 import { getPlatformLabel, getFaviconUrl, normalizePlatform } from "@/lib/platforms";
 import { isBotRequest } from "@/lib/bot-detect";
 import { BackLink } from "@/components/ui/back-link";
@@ -45,6 +45,11 @@ export default async function PlatformPage({
   params: Promise<{ username: string; platform: string }>;
 }) {
   const { username, platform } = await params;
+  const profile = await getProfile(username);
+
+  if (!profile) {
+    notFound();
+  }
 
   const url = await getProfileLink(username, platform);
 

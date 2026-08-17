@@ -9,5 +9,7 @@ export const CURRENT_SPONSOR: Sponsor | null = null;
 
 export const ADVERTISE_PAGE_URL = "/advertise";
 
-export const ADVERTISE_CONTACT_URL =
-  "mailto:hello@kshv.me?subject=Advertise%20on%20redirect";
+export const ADVERTISE_CONTACT_EMAIL = "hi@kshv.me";
+export const ADVERTISE_CONTACT_SUBJECT = "Advertise on redirect";
+
+export const ADVERTISE_CONTACT_URL = `mailto:${ADVERTISE_CONTACT_EMAIL}?subject=${encodeURIComponent(ADVERTISE_CONTACT_SUBJECT)}`;
