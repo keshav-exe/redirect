@@ -14,9 +14,9 @@ export function Header({ user, onSignOut, rightAction }: HeaderProps) {
       <nav className="max-w-6xl mx-auto flex items-center justify-between">
         <Link
           href="/"
-          className="font-bold tracking-tighter hover:opacity-60 transition-opacity duration-200"
+          className="text-sm font-medium tracking-tight text-foreground transition-opacity duration-200 hover:opacity-70"
         >
-          <span className="text-pink-500">re</span>direct
+          redirect
         </Link>
         
         <div className="flex items-center gap-6">

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -12,19 +13,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Platform, ProfileLink } from "@/lib/types";
+import { PLATFORM_ORDER, PLATFORM_LABELS } from "@/lib/platforms";
+import { PlusSignIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { BackLink } from "@/components/ui/back-link";
+import { Icon } from "@/components/ui/icon";
 import Link from "next/link";
 
-const PLATFORMS: { value: Platform; label: string }[] = [
-  { value: "twitter", label: "Twitter / X" },
-  { value: "instagram", label: "Instagram" },
-  { value: "linkedin", label: "LinkedIn" },
-  { value: "github", label: "GitHub" },
-  { value: "youtube", label: "YouTube" },
-  { value: "tiktok", label: "TikTok" },
-  { value: "website", label: "Website" },
-];
+const PLATFORMS: { value: Platform; label: string }[] = PLATFORM_ORDER.map(
+  (value) => ({ value, label: PLATFORM_LABELS[value] })
+);
 
-export default function EditPage() {
+function EditPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -36,6 +35,7 @@ export default function EditPage() {
   const [loading, setLoading] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [adFree, setAdFree] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.id) {
@@ -49,6 +49,7 @@ export default function EditPage() {
                 ? data.profile.links
                 : [{ platform: "twitter", url: "" }]
             );
+            setAdFree(data.profile.adFree ?? false);
             setIsEdit(true);
           } else {
             // If no profile exists, check for username param from home page
@@ -67,10 +68,8 @@ export default function EditPage() {
 
   if (status === "loading" || profileLoading) {
     return (
-      <main className="grid h-full min-h-screen p-4">
-        <div className="flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-muted-foreground/20 border-t-muted-foreground rounded-full animate-spin" />
-        </div>
+      <main className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground" />
       </main>
     );
   }
@@ -119,6 +118,7 @@ export default function EditPage() {
       github: `https://github.com/${handle}`,
       youtube: `https://youtube.com/@${handle}`,
       tiktok: `https://tiktok.com/@${handle}`,
+      reddit: `https://reddit.com/u/${handle}`,
       website: trimmed.startsWith("www.") ? `https://${trimmed}` : trimmed,
     };
 
@@ -147,6 +147,7 @@ export default function EditPage() {
       username: username.trim().toLowerCase(),
       links: validLinks,
       isEdit,
+      adFree,
     };
 
     const res = await fetch("/api/profile", {
@@ -170,35 +171,30 @@ export default function EditPage() {
   );
 
   return (
-    <main className="grid h-full min-h-screen p-4 gap-4">
-      <div className="flex flex-col gap-6 ring-2 ring-offset-8 ring-border rounded-2xl bg-accent p-6">
+    <main className="min-h-screen px-6 py-5 lg:px-10">
+      <div className="mx-auto flex max-w-xl flex-col gap-8">
         <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
-          >
-            ← Back
-          </Link>
+          <BackLink />
           {session?.user && (
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
+              className="text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
             >
               Sign out
             </button>
           )}
         </div>
 
-        <div className="space-y-6 max-w-xl">
+        <div className="space-y-6">
           <div className="space-y-2">
-            <h1 className="text-5xl lg:text-6xl font-bold tracking-tighter leading-[110%] text-muted-foreground">
+            <h1 className="text-[2.5rem] leading-[1.08] text-muted-foreground lg:text-[3rem]">
               {isEdit ? (
-                <>Edit your <span className="text-primary">dwaar</span></>
+                <>Edit your <span className="text-foreground">redirect</span></>
               ) : (
-                <>Create your <span className="text-primary">dwaar</span></>
+                <>Create your <span className="text-foreground">redirect</span></>
               )}
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               {isEdit
                 ? "Update your social links"
                 : "Claim your username and add your social links"}
@@ -217,9 +213,9 @@ export default function EditPage() {
               <label htmlFor="username" className="text-sm font-medium text-muted-foreground">
                 Your username
               </label>
-              <div className="flex items-stretch overflow-hidden rounded-lg border border-border bg-card">
+              <div className="flex items-stretch overflow-hidden rounded-sm border border-border bg-card">
                 <span className="flex items-center px-4 text-muted-foreground text-sm">
-                  dwaar.to/
+                  /
                 </span>
                 <input
                   id="username"
@@ -249,9 +245,10 @@ export default function EditPage() {
                   <button
                     type="button"
                     onClick={addLink}
-                    className="text-sm text-primary hover:opacity-80 transition-opacity duration-200 font-medium"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-link transition-opacity duration-200 hover:opacity-80"
                   >
-                    + Add link
+                    <Icon icon={PlusSignIcon} className="size-3.5" />
+                    Add link
                   </button>
                 )}
               </div>
@@ -260,7 +257,7 @@ export default function EditPage() {
                 {links.map((link, index) => (
                   <div
                     key={index}
-                    className="flex gap-3 items-start p-4 bg-card border border-border rounded-lg"
+                    className="flex items-start gap-3 rounded-sm border border-border bg-card p-4"
                   >
                     <div className="flex-1 space-y-3">
                       <Select
@@ -289,7 +286,7 @@ export default function EditPage() {
                         value={link.url}
                         onChange={(e) => updateLink(index, "url", e.target.value)}
                         placeholder="@yourhandle or full URL"
-                        className="w-full px-3 py-2 text-sm bg-transparent border border-border rounded-lg outline-none focus:border-foreground transition-colors duration-200"
+                        className="w-full rounded-sm border border-border bg-transparent px-3 py-2 text-sm outline-none transition-colors duration-200 focus:border-foreground"
                       />
                       <p className="text-xs text-muted-foreground">
                         Enter @yourhandle or full URL (e.g., https://twitter.com/yourname)
@@ -299,19 +296,10 @@ export default function EditPage() {
                       <button
                         type="button"
                         onClick={() => removeLink(index)}
-                        className="p-2 text-muted-foreground hover:text-destructive transition-colors duration-200"
+                        className="p-2 text-muted-foreground transition-colors duration-200 hover:text-destructive"
                         aria-label="Remove link"
                       >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        >
-                          <path d="M12 4L4 12M4 4l8 8" />
-                        </svg>
+                        <Icon icon={Cancel01Icon} className="size-4" />
                       </button>
                     )}
                   </div>
@@ -319,12 +307,27 @@ export default function EditPage() {
               </div>
             </div>
 
+            {/* Sponsorship */}
+            <div className="flex items-center justify-between gap-4 rounded-sm border border-border bg-card px-4 py-3">
+              <label htmlFor="ad-free" className="cursor-pointer select-none">
+                <span className="block text-sm font-medium">Ad-free profile</span>
+                <span className="block text-xs text-muted-foreground">
+                  Hide the sponsor slot on your public page
+                </span>
+              </label>
+              <Switch
+                id="ad-free"
+                checked={adFree}
+                onCheckedChange={setAdFree}
+              />
+            </div>
+
             {/* Submit */}
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-sm bg-primary px-6 py-3 text-[15px] font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -334,13 +337,13 @@ export default function EditPage() {
                 ) : isEdit ? (
                   "Save changes"
                 ) : (
-                  "Create dwaar"
+                  "Create redirect"
                 )}
               </button>
               {isEdit && (
                 <Link
                   href={`/${username}`}
-                  className="px-6 py-3 bg-card border border-border text-sm font-medium rounded-lg hover:bg-muted transition-colors duration-200 whitespace-nowrap"
+                  className="whitespace-nowrap rounded-sm border border-border bg-card px-6 py-3 text-sm font-medium transition-colors duration-200 hover:bg-muted"
                 >
                   View profile
                 </Link>
@@ -351,9 +354,9 @@ export default function EditPage() {
           {isEdit && (
             <div className="pt-4 text-center">
               <p className="text-sm text-muted-foreground">
-                Your dwaar:{" "}
+                Your link:{" "}
                 <span className="text-foreground font-medium">
-                  dwaar.to/{username}
+                  /{username}
                 </span>
               </p>
             </div>
@@ -361,5 +364,13 @@ export default function EditPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function EditPage() {
+  return (
+    <Suspense fallback={null}>
+      <EditPageContent />
+    </Suspense>
   );
 }

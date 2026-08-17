@@ -5,6 +5,7 @@ export type Platform =
   | "github"
   | "youtube"
   | "tiktok"
+  | "reddit"
   | "website";
 
 export interface ProfileLink {
@@ -16,6 +17,7 @@ export interface Profile {
   username: string;
   links: ProfileLink[];
   userId: string;
+  adFree?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }

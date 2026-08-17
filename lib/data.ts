@@ -1,7 +1,11 @@
+import { cache } from "react";
 import type { Profile, Platform } from "./types";
 import { supabase } from "./supabase";
+import { PLATFORM_DOMAINS, normalizePlatform } from "./platforms";
 
-export async function getProfile(username: string): Promise<Profile | null> {
+export const getProfile = cache(async function getProfile(
+  username: string
+): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
@@ -14,16 +18,11 @@ export async function getProfile(username: string): Promise<Profile | null> {
     username: data.username,
     links: data.links as Profile["links"],
     userId: data.user_id,
+    adFree: data.ad_free ?? false,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   };
-}
-
-// Normalize platform name (x → twitter)
-function normalizePlatform(platform: string): Platform {
-  if (platform === "x") return "twitter";
-  return platform as Platform;
-}
+});
 
 export async function getProfileLink(
   username: string,
@@ -48,6 +47,7 @@ export async function saveProfile(profile: Profile): Promise<void> {
     username: profile.username.toLowerCase(),
     user_id: profile.userId,
     links: profile.links,
+    ad_free: profile.adFree ?? false,
   };
 
   // Only set created_at if it's a new profile (createdAt is provided)
@@ -118,9 +118,26 @@ export async function getProfileByUserId(
     username: data.username,
     links: data.links as Profile["links"],
     userId: data.user_id,
+    adFree: data.ad_free ?? false,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   };
+}
+
+export async function getProfilesForSitemap(): Promise<
+  Array<{ username: string; updatedAt: string | null }>
+> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("username, updated_at")
+    .order("updated_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  return data.map((profile) => ({
+    username: profile.username,
+    updatedAt: profile.updated_at,
+  }));
 }
 
 export async function canEditProfile(
@@ -133,27 +150,13 @@ export async function canEditProfile(
 
 // Platform URL builders for universal/app links
 export function buildPlatformUrl(platform: Platform, url: string): string {
-  // Extract username/handle from URL
-  const urlObj = new URL(url);
-  const pathname = urlObj.pathname;
+  const domain = PLATFORM_DOMAINS[platform];
+  if (!domain) return url; // youtube / website URLs are already correct
 
-  switch (platform) {
-    case "twitter":
-      // Try app link first, fallback to web
-      return `https://twitter.com${pathname}`;
-    case "instagram":
-      return `https://instagram.com${pathname}`;
-    case "linkedin":
-      return `https://linkedin.com${pathname}`;
-    case "github":
-      return `https://github.com${pathname}`;
-    case "youtube":
-      return url; // YouTube URLs are already correct
-    case "tiktok":
-      return `https://tiktok.com${pathname}`;
-    case "website":
-      return url;
-    default:
-      return url;
+  try {
+    const { pathname, search } = new URL(url);
+    return `https://${domain}${pathname}${search}`;
+  } catch {
+    return url;
   }
 }

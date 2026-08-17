@@ -1,23 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { Button } from "@/components/ui/button";
-import { User02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 export default function HomePage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
   const [username, setUsername] = useState("");
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/edit");
-    }
-  }, [status, router]);
 
   const handleClaim = () => {
     const params = new URLSearchParams();
@@ -33,67 +24,57 @@ export default function HomePage() {
   };
 
   return (
-    <main className="grid h-full min-h-screen p-4 gap-4">
-      <div className="flex flex-col gap-6 ring-2 ring-offset-8 justify-between ring-border rounded-2xl bg-accent p-4">
-        <div className="flex gap-6 justify-between">
-          <div className="flex flex-col gap-6">
-            <h1 className="text-6xl lg:text-7xl font-bold tracking-tighter leading-[110%] text-muted-foreground max-w-4xl">
-              A simple tool that makes it <span className="text-primary">easier to keep track</span> of your social profiles, with just one <span className="text-blue-500 px-3 bg-blue-200 rounded-lg">dwaar.</span>
-            </h1>
+    <MarketingShell centerContent>
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
+        <h1
+          className="max-w-[65ch] text-[2.75rem] leading-[1.08] text-muted-foreground lg:text-[3.95rem]"
+          style={{ textWrap: "balance" }}
+        >
+          A simple tool that makes it{" "}
+          <span className="text-foreground">easier to keep track</span> of your
+          social profiles, with just one{" "}
+          <span className="text-foreground">redirect.</span>
+        </h1>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-xl">
-              <div className="flex items-center flex-1 bg-card border border-border rounded-lg overflow-hidden">
-                <span className="pl-4 text-muted-foreground text-sm whitespace-nowrap">
-                  dwaar.to/
-                </span>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={handleUsernameChange}
-                  placeholder="yourname"
-                  className="flex-1 px-2 py-3 text-sm bg-transparent outline-none placeholder:text-muted-foreground/50"
-                />
-                <span className="pr-4 text-muted-foreground text-sm whitespace-nowrap">
-                  instagram
-                </span>
-              </div>
-              <button
-                onClick={handleClaim}
-                className="px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-opacity duration-200 whitespace-nowrap"
-              >
-                Claim dwaar
-              </button>
-            </div>
+        <div className="flex max-w-xl flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-1 items-center overflow-hidden rounded-sm border border-border bg-card focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+            <span className="whitespace-nowrap pl-4 text-sm tabular-nums text-muted-foreground">
+              /
+            </span>
+            <input
+              type="text"
+              value={username}
+              onChange={handleUsernameChange}
+              placeholder="yourname"
+              className="flex-1 bg-transparent px-1 py-3 text-base outline-none placeholder:text-muted-foreground/50 md:text-sm"
+            />
+            <span className="whitespace-nowrap pr-4 text-sm tabular-nums text-muted-foreground">
+              /instagram
+            </span>
           </div>
-          <div className="flex flex-col gap-2">
-            <Link href="/auth/signin">
-              <Button variant="outline" size="icon">
-                <HugeiconsIcon icon={User02Icon} className="size-5" />
-
-              </Button>
-            </Link>
-          </div>
+          <Button onClick={handleClaim} size="lg" className="px-5">
+            Claim yours
+          </Button>
         </div>
 
-        <footer className="flex items-end justify-between">
-          <div className="space-y-1 lg:min-w-[200px]">
-            <p className="text-2xl font-bold text-blue-500">द्वार</p>
-            <p className="text-sm text-muted-foreground italic">dwaar (Sanskrit)</p>
-            <p className="text-xs text-muted-foreground">gateway • entrance • door</p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>•</span>
-            <span>
-              <Link href="/privacy">Privacy Policy</Link>
-            </span>
-            <span>•</span>
-            <span>
-              <Link href="/terms">Terms of Service</Link>
-            </span>
-          </div>
-        </footer>
+        <p className="max-w-[65ch] text-sm leading-relaxed text-muted-foreground">
+          Curious how it works? Read the{" "}
+          <Link
+            href="/features"
+            className="text-link underline underline-offset-4 transition-colors duration-150 ease-out hover:text-foreground"
+          >
+            features
+          </Link>{" "}
+          page. Running a brand? See{" "}
+          <Link
+            href="/advertise"
+            className="text-link underline underline-offset-4 transition-colors duration-150 ease-out hover:text-foreground"
+          >
+            advertise
+          </Link>
+          .
+        </p>
       </div>
-
-    </main>
+    </MarketingShell>
   );
 }

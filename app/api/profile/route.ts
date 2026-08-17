@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { username, links, isEdit } = body;
+    const { username, links, isEdit, adFree } = body;
 
     // Basic validation
     if (!username) {
@@ -103,6 +103,7 @@ export async function POST(request: Request) {
       username: normalizedUsername,
       links: validLinks,
       userId: session.user.id,
+      adFree: Boolean(adFree),
       createdAt: existingProfile?.createdAt,
     };
 

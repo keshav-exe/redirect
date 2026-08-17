@@ -4,9 +4,13 @@ CREATE TABLE IF NOT EXISTS profiles (
   username TEXT UNIQUE NOT NULL,
   user_id TEXT NOT NULL,
   links JSONB NOT NULL DEFAULT '[]'::jsonb,
+  ad_free BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Safe to re-run: adds the column for databases created before ad_free existed
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS ad_free BOOLEAN NOT NULL DEFAULT false;
 
 -- Create index on username for fast lookups
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username);

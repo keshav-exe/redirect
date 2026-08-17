@@ -1,37 +1,32 @@
 "use client";
 
+import { Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { BackLink } from "@/components/ui/back-link";
 import { Button } from "@/components/ui/button";
 
-export default function SignInPage() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const username = searchParams.get("username");
-  const router = useRouter();
   const handleSignIn = () => {
     const callbackUrl = username ? `/edit?username=${username}` : "/edit";
     signIn("google", { callbackUrl });
   };
 
   return (
-    <main className="grid bg-muted h-full min-h-screen p-4 gap-4">
-      <div className="flex flex-col justify-between gap-6 ring-2 ring-offset-8 ring-border rounded-2xl bg-background p-6">
-        <div className="flex flex-col gap-6">
-          <Button
-            variant="outline"
-            className="w-fit"
-            onClick={() => router.back()}
-          >
-            ← Back
-          </Button>
+    <main className="flex min-h-screen flex-col px-6 py-5 lg:px-10">
+      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-between gap-10">
+        <div className="flex flex-col gap-8">
+          <BackLink className="w-fit" />
 
-          <div className="flex flex-col gap-6 max-w-xl">
+          <div className="flex flex-col gap-8">
             <div className="space-y-2">
-              <h1 className="text-5xl lg:text-6xl font-bold tracking-tighter leading-[110%] text-muted-foreground">
-                Welcome <span className="text-primary">back</span>
+              <h1 className="text-[2.5rem] leading-[1.08] text-muted-foreground lg:text-[3rem]">
+                Welcome <span className="text-foreground">back</span>
               </h1>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 Sign in to manage your redirects
               </p>
             </div>
@@ -40,7 +35,7 @@ export default function SignInPage() {
               onClick={handleSignIn}
               size="lg"
               variant="secondary"
-              className="w-fit"
+              className="w-fit rounded-sm"
             >
               <svg width="20" height="20" viewBox="0 0 24 24">
                 <path
@@ -62,17 +57,30 @@ export default function SignInPage() {
               </svg>
               Continue with Google
             </Button>
-
-
           </div>
         </div>
 
-        <footer className="flex items-end justify-between">
+        <footer>
           <p className="text-xs text-muted-foreground">
-            By signing in, you agree to our <Link href="/privacy" className="text-primary underline">privacy policy</Link> and <Link href="/terms" className="text-primary underline">terms of service</Link>
+            By signing in, you agree to our{" "}
+            <Link href="/privacy" className="text-link underline">
+              privacy policy
+            </Link>{" "}
+            and{" "}
+            <Link href="/terms" className="text-link underline">
+              terms of service
+            </Link>
           </p>
         </footer>
       </div>
     </main>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInContent />
+    </Suspense>
   );
 }
