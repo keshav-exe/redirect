@@ -3,7 +3,6 @@
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -356,7 +355,7 @@ function EditPageContent() {
               </div>
             </div>
 
-            {/* Sponsorship */}
+            {/* Ads disabled for now
             <div className="flex items-center justify-between gap-4 rounded-sm border border-border bg-card px-4 py-3">
               <label htmlFor="ad-free" className="cursor-pointer select-none">
                 <span className="block text-sm font-medium">Ad-free profile</span>
@@ -370,6 +369,7 @@ function EditPageContent() {
                 onCheckedChange={setAdFree}
               />
             </div>
+            */}
 
             {/* Submit */}
             <div className="flex gap-3 pt-4">

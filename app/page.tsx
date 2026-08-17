@@ -78,14 +78,7 @@ export default function HomePage() {
           >
             features
           </Link>{" "}
-          page. Running a brand? See{" "}
-          <Link
-            href="/advertise"
-            className="text-link underline underline-offset-4 transition-colors duration-150 ease-out hover:text-foreground"
-          >
-            advertise
-          </Link>
-          .
+          page.
         </p>
       </div>
     </MarketingShell>

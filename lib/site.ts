@@ -8,5 +8,8 @@ export const SITE_URL = (
   "https://redirect.kshv.me"
 ).replace(/\/$/, "");
 
+export const GITHUB_REPO_URL = "https://github.com/keshav-exe/redirect";
+export const GITHUB_ISSUES_URL = `${GITHUB_REPO_URL}/issues`;
+
 export const BRAND_COLOR = "#0284c7";
 export const THEME_COLOR = "#181815";

@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
+import { ADS_ENABLED } from "@/lib/ads";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
+  const routes: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,
       changeFrequency: "monthly",
@@ -14,11 +15,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${SITE_URL}/features`,
       changeFrequency: "monthly",
       priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/advertise`,
-      changeFrequency: "monthly",
-      priority: 0.6,
     },
     {
       url: `${SITE_URL}/privacy`,
@@ -31,4 +27,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.2,
     },
   ];
+
+  if (ADS_ENABLED) {
+    routes.splice(2, 0, {
+      url: `${SITE_URL}/advertise`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    });
+  }
+
+  return routes;
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getProfile } from "@/lib/data";
 import { PLATFORM_LABELS, getFaviconUrl } from "@/lib/platforms";
-import { AdSlot } from "@/components/ui/ad-slot";
+// import { AdSlot } from "@/components/ui/ad-slot";
 import { BackLink } from "@/components/ui/back-link";
 import { Icon } from "@/components/ui/icon";
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
@@ -106,7 +106,7 @@ export default async function UsernamePage({
             <p className="text-muted-foreground">No links added yet.</p>
           )}
 
-          {!profile.adFree && <AdSlot />}
+          {/* {ADS_ENABLED && !profile.adFree && <AdSlot />} */}
 
           <Link
             href="/"

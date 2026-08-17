@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { AdvertiseContactButton } from "@/components/marketing/advertise-contact-button";
 import { createPageMetadata } from "@/lib/seo";
+import { ADS_ENABLED } from "@/lib/ads";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Advertise",
@@ -30,6 +32,10 @@ const reasons = [
 ];
 
 export default function AdvertisePage() {
+  if (!ADS_ENABLED) {
+    notFound();
+  }
+
   return (
     <MarketingShell>
       <div className="mx-auto w-full max-w-3xl space-y-10">

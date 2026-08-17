@@ -1,3 +1,5 @@
+export const ADS_ENABLED = false;
+
 export interface Sponsor {
   name: string;
   tagline: string;
