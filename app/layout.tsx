@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Zen_Dots } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/providers";
 import {
   BRAND_COLOR,
@@ -135,6 +136,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   );
